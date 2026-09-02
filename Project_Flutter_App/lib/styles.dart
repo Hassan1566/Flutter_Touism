@@ -7,7 +7,7 @@ class Styles {
   static const horizontalPaddingDefault = 12.0;
   static final Color _textColorStrong = _hexToColor('000000');
   static final Color _textColorDefault = _hexToColor('000000');
-  static final Color _textColorFaint = _hexToColor('8B0000');
+  static final Color _textColorFaint = _hexToColor('999999');
   static final Color textColorBright = _hexToColor('FFFFFF');
   static final Color accentColor = _hexToColor('8B0000');
   static final String _fontNameDefault = 'Poppins';
