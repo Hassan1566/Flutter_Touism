@@ -47,7 +47,7 @@ class _LocationListState extends State<LocationList> {
         final location = locations[index];
         return GestureDetector(
           onTap: () => _navigatetolocationdetail(context, location.id),
-          child: Container(
+          child: SizedBox(
             height: listitemheight,
             child: Stack(
               children: [
