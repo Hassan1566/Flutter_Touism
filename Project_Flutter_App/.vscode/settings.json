@@ -1,0 +1,11 @@
+{
+    "cmake.sourceDirectory": "${workspaceFolder}/windows",
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/windows/runner",
+        "${workspaceFolder}/windows/flutter/ephemeral/cpp_client_wrapper/include/**",
+        "${workspaceFolder}/windows/flutter/ephemeral/**"
+    ],
+    "C_Cpp.errorSquiggles": "Disabled",
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.updateBuildConfiguration": "interactive"
+}
