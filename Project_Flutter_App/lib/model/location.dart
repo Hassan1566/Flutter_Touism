@@ -14,7 +14,7 @@ class Location {
   @JsonKey(name: 'image')
   final String image;
   final List<LocationFact>? facts;
-  @JsonKey(name: 'user_itinerary_summary')
+  @JsonKey(name: 'use_itnerary_summary')
   // ignore: non_constant_identifier_names
   final String user_itnerary_summary;
   @JsonKey(name: 'package_name')

@@ -9,12 +9,12 @@ part of 'location.dart';
 Location _$LocationFromJson(Map<String, dynamic> json) => Location(
   id: (json['id'] as num).toInt(),
   name: json['name'] as String,
-  image: json['image'] as String? ?? '',
+  image: json['image'] as String,
   facts: (json['facts'] as List<dynamic>?)
       ?.map((e) => LocationFact.fromJson(e as Map<String, dynamic>))
       .toList(),
-  user_itnerary_summary: json['user_itnerary_summary'] as String? ?? '',
-  package_name: json['package_name'] as String? ?? '',
+  user_itnerary_summary: json['use_itnerary_summary'] as String,
+  package_name: json['package_name'] as String,
 );
 
 Map<String, dynamic> _$LocationToJson(Location instance) => <String, dynamic>{
@@ -22,6 +22,6 @@ Map<String, dynamic> _$LocationToJson(Location instance) => <String, dynamic>{
   'name': instance.name,
   'image': instance.image,
   'facts': instance.facts,
-  'user_itnerary_summary': instance.user_itnerary_summary,
+  'use_itnerary_summary': instance.user_itnerary_summary,
   'package_name': instance.package_name,
 };

@@ -44,7 +44,7 @@ class Styles {
   static final locationTileSubTitle = TextStyle(
     fontFamily: _fontNameDefault,
     fontSize: _textSizeDefault,
-    color: _textColorFaint,
+    color: accentColor,
   );
   static final locationTileCaption = TextStyle(
     fontFamily: _fontNameDefault,
