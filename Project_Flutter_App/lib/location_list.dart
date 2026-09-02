@@ -100,14 +100,10 @@ class _LocationListState extends State<LocationList> {
         vertical: 5.0,
         horizontal: Styles.horizontalPaddingDefault,
       ),
-      decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.5)),
+      decoration: BoxDecoration(color: const Color(0x80000000)),
       child: info,
     );
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [overlay],
-    );
+    return Positioned(left: 0, right: 0, bottom: 0, child: overlay);
   }
 
   Widget _itemTitle(Location location) {
