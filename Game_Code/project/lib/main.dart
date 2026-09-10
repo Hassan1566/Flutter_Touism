@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:project/models/player_setup_screen.dart';
+import 'package:project/screens/player_setup_screen.dart';
 
 void main() {
   runApp(const MintedApp());

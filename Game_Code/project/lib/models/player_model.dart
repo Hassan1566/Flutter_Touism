@@ -2,9 +2,13 @@ class Player {
   final String id;
   String name;
   String color;
-  String pathType;
+  String pathType; // "College" or "Non-College"
   String career;
-  Map<String, dynamic> appValues;
+  int salary;
+  int balance; // Starts at 2500 minus college fee if applicable
+  int startupFund;
+  Map<String, dynamic> activeLoan;
+  Map<String, dynamic> activeInvestment;
   List<Map<String, dynamic>> history;
 
   Player({
@@ -13,9 +17,14 @@ class Player {
     required this.color,
     required this.pathType,
     required this.career,
-    Map<String, dynamic>? appValues,
+    required this.salary,
+    required this.balance,
+    this.startupFund = 0,
+    Map<String, dynamic>? activeLoan,
+    Map<String, dynamic>? activeInvestment,
     List<Map<String, dynamic>>? history,
-  }) : appValues = appValues ?? {},
+  }) : activeLoan = activeLoan ?? {},
+       activeInvestment = activeInvestment ?? {},
        history = history ?? [];
 
   Map<String, dynamic> toJson() => {
@@ -24,7 +33,11 @@ class Player {
     'color': color,
     'pathType': pathType,
     'career': career,
-    'appValues': appValues,
+    'salary': salary,
+    'balance': balance,
+    'startupFund': startupFund,
+    'activeLoan': activeLoan,
+    'activeInvestment': activeInvestment,
     'history': history,
   };
 
@@ -34,7 +47,11 @@ class Player {
     color: json['color'],
     pathType: json['pathType'],
     career: json['career'],
-    appValues: Map<String, dynamic>.from(json['appValues'] ?? {}),
+    salary: json['salary'],
+    balance: json['balance'],
+    startupFund: json['startupFund'],
+    activeLoan: Map<String, dynamic>.from(json['activeLoan'] ?? {}),
+    activeInvestment: Map<String, dynamic>.from(json['activeInvestment'] ?? {}),
     history: List<Map<String, dynamic>>.from(json['history'] ?? []),
   );
 }

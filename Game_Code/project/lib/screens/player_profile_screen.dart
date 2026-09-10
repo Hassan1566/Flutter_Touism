@@ -21,7 +21,6 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
       appBar: AppBar(
         title: const Text('Player Profiles'),
         actions: [
-          // Player Switcher Dropdown in Appbar
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: DropdownButton<int>(
@@ -73,16 +72,30 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Path Type:', style: TextStyle(fontSize: 16)),
-                        Chip(label: Text(activePlayer.pathType)),
+                        const Text(
+                          'Balance (Mints):',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        Text(
+                          '${activePlayer.balance} Mints',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
                       ],
                     ),
+                    const SizedBox(height: 6),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Career:', style: TextStyle(fontSize: 16)),
+                        const Text(
+                          'Fixed Salary:',
+                          style: TextStyle(fontSize: 16),
+                        ),
                         Text(
-                          activePlayer.career,
+                          '${activePlayer.salary} Mints / Payday',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -90,12 +103,23 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 6),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Assigned Color:', style: TextStyle(fontSize: 16)),
+                        const Text(
+                          'Path Type:',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        Chip(label: Text(activePlayer.pathType)),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Career:', style: TextStyle(fontSize: 16)),
                         Text(
-                          activePlayer.color,
+                          activePlayer.career,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

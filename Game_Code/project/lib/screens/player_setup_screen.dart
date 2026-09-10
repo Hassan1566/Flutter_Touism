@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/player_model.dart';
-import 'player_profile_screen.dart'; // We'll navigate here next
+import 'player_profile_screen.dart';
 
 class PlayerSetupScreen extends StatefulWidget {
   const PlayerSetupScreen({super.key});
@@ -19,14 +19,33 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
   final List<String> _selectedPaths = [];
   final List<String> _selectedCareers = [];
 
-  // Sample career options based on PDF game rules
-  final List<String> _availableCareers = [
-    'Engineer',
-    'Doctor',
-    'Business',
-    'Artist',
+  // Official Careers and Salaries from minted.final.pdf
+  final Map<String, int> _collegeCareers = {
+    'Doctor': 150,
+    'Engineer': 130,
+    'Accountant': 120,
+    'Psychologist': 100,
+    'Architect': 120,
+    'Lawyer': 150,
+  };
+
+  final Map<String, int> _nonCollegeCareers = {
+    'Artist': 80,
+    'Freelancer': 80,
+    'Influencer': 120,
+    'Farmer': 100,
+    'Actor': 120,
+    'Activist': 50,
+  };
+
+  final List<String> _availableColors = [
+    'Red',
+    'Blue',
+    'Green',
+    'Yellow',
+    'Purple',
+    'Orange',
   ];
-  final List<String> _availableColors = ['Red', 'Blue', 'Green', 'Yellow'];
 
   @override
   void initState() {
@@ -43,15 +62,15 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
     for (int i = 0; i < _numberOfPlayers; i++) {
       _nameControllers.add(TextEditingController(text: 'Player ${i + 1}'));
       _selectedColors.add(_availableColors[i % _availableColors.length]);
-      _selectedPaths.add('Degree');
-      _selectedCareers.add(_availableCareers[0]);
+      _selectedPaths.add('College'); // Default path
+      _selectedCareers.add(_collegeCareers.keys.first);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Player Setup')),
+      appBar: AppBar(title: const Text('Player Setup (MINTED)')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -60,12 +79,12 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Number of Players:',
+                  'Number of Players (2-6):',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 DropdownButton<int>(
                   value: _numberOfPlayers,
-                  items: [2, 3, 4].map((int value) {
+                  items: [2, 3, 4, 5, 6].map((int value) {
                     return DropdownMenuItem<int>(
                       value: value,
                       child: Text('$value Players'),
@@ -85,6 +104,16 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
               child: ListView.builder(
                 itemCount: _numberOfPlayers,
                 itemBuilder: (context, index) {
+                  String currentPath = _selectedPaths[index];
+                  List<String> availableCareersList = currentPath == 'College'
+                      ? _collegeCareers.keys.toList()
+                      : _nonCollegeCareers.keys.toList();
+
+                  // Ensure selected career exists in the current path list
+                  if (!availableCareersList.contains(_selectedCareers[index])) {
+                    _selectedCareers[index] = availableCareersList.first;
+                  }
+
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: Padding(
@@ -107,19 +136,24 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
                             children: [
                               Expanded(
                                 child: DropdownButtonFormField<String>(
-                                  value: _selectedPaths[index],
+                                  value: currentPath,
                                   decoration: const InputDecoration(
                                     labelText: 'Path',
                                   ),
-                                  items: ['Degree', 'Non-Degree'].map((path) {
+                                  items: ['College', 'Non-College'].map((path) {
                                     return DropdownMenuItem(
                                       value: path,
                                       child: Text(path),
                                     );
                                   }).toList(),
-                                  onChanged: (val) => setState(
-                                    () => _selectedPaths[index] = val!,
-                                  ),
+                                  onChanged: (val) {
+                                    setState(() {
+                                      _selectedPaths[index] = val!;
+                                      _selectedCareers[index] = val == 'College'
+                                          ? _collegeCareers.keys.first
+                                          : _nonCollegeCareers.keys.first;
+                                    });
+                                  },
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -129,10 +163,13 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
                                   decoration: const InputDecoration(
                                     labelText: 'Career',
                                   ),
-                                  items: _availableCareers.map((career) {
+                                  items: availableCareersList.map((career) {
+                                    int salary = currentPath == 'College'
+                                        ? _collegeCareers[career]!
+                                        : _nonCollegeCareers[career]!;
                                     return DropdownMenuItem(
                                       value: career,
-                                      child: Text(career),
+                                      child: Text('$career (${salary}M)'),
                                     );
                                   }).toList(),
                                   onChanged: (val) => setState(
@@ -154,18 +191,27 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
                 minimumSize: const Size.fromHeight(50),
               ),
               onPressed: () {
-                // Create players list
                 List<Player> players = List.generate(_numberOfPlayers, (index) {
+                  String path = _selectedPaths[index];
+                  String career = _selectedCareers[index];
+                  int salary = path == 'College'
+                      ? _collegeCareers[career]!
+                      : _nonCollegeCareers[career]!;
+
+                  // Starting funds: 2500 mints total. College costs 500 mints.
+                  int initialBalance = path == 'College' ? 2000 : 2500;
+
                   return Player(
                     id: 'p_${index + 1}',
                     name: _nameControllers[index].text.trim(),
                     color: _selectedColors[index],
-                    pathType: _selectedPaths[index],
-                    career: _selectedCareers[index],
+                    pathType: path,
+                    career: career,
+                    salary: salary,
+                    balance: initialBalance,
                   );
                 });
 
-                // Navigate to Profile Screen passing the players list
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -173,7 +219,10 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
                   ),
                 );
               },
-              child: const Text('Start Game', style: TextStyle(fontSize: 18)),
+              child: const Text(
+                'Start Game (2500 Mints Base)',
+                style: TextStyle(fontSize: 18),
+              ),
             ),
           ],
         ),
