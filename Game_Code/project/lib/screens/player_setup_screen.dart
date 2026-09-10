@@ -132,10 +132,29 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
+                          DropdownButtonFormField<String>(
+                            value: _selectedColors[index],
+                            decoration: const InputDecoration(
+                              labelText: 'Token Color',
+                            ),
+                            items: _availableColors.map((colorName) {
+                              return DropdownMenuItem(
+                                value: colorName,
+                                child: Text(colorName),
+                              );
+                            }).toList(),
+                            onChanged: (val) {
+                              setState(() {
+                                _selectedColors[index] = val!;
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 12),
                           Row(
                             children: [
                               Expanded(
                                 child: DropdownButtonFormField<String>(
+                                  isExpanded: true,
                                   value: currentPath,
                                   decoration: const InputDecoration(
                                     labelText: 'Path',
@@ -156,9 +175,11 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
                                   },
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: 8),
                               Expanded(
+                                flex: 2,
                                 child: DropdownButtonFormField<String>(
+                                  isExpanded: true,
                                   value: _selectedCareers[index],
                                   decoration: const InputDecoration(
                                     labelText: 'Career',

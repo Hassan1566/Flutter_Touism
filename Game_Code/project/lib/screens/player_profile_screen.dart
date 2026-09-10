@@ -18,9 +18,29 @@ class PlayerProfileScreen extends StatefulWidget {
 class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
   int _activePlayerIndex = 0;
 
+  Color _parseColor(String colorName) {
+    switch (colorName.toLowerCase()) {
+      case 'red':
+        return Colors.red;
+      case 'blue':
+        return Colors.blue;
+      case 'green':
+        return Colors.green;
+      case 'yellow':
+        return Colors.yellow;
+      case 'purple':
+        return Colors.purple;
+      case 'orange':
+        return Colors.orange;
+      default:
+        return Colors.blueGrey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Player activePlayer = widget.players[_activePlayerIndex];
+    Color playerThemeColor = _parseColor(activePlayer.color);
 
     return Scaffold(
       appBar: AppBar(
@@ -67,9 +87,10 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                     const SizedBox(height: 8),
                     Text(
                       activePlayer.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
+                        color: playerThemeColor,
                       ),
                     ),
                     const Divider(),
