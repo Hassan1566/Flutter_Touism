@@ -148,10 +148,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                 ),
                 ElevatedButton.icon(
                   onPressed: () {
-                    BankingService.takeLoan(activePlayer, 1000, () {
-                      setState(() {});
-                    });
-                    BankingService.processInvestment(activePlayer, 5000, () {
+                    showBankingDialog(context, activePlayer, () {
                       setState(() {});
                     });
                   },
