@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../models/player_model.dart';
+
 import '../services/quiz_service.dart';
 import '../services/banking_service.dart';
+
+import 'package:project/services/news_startup.dart';
 
 class PlayerProfileScreen extends StatefulWidget {
   final List<Player> players;
@@ -154,6 +157,15 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                   },
                   icon: const Icon(Icons.account_balance),
                   label: const Text("Banking"),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    showNewsStartupDialog(context, activePlayer, () {
+                      setState(() {});
+                    });
+                  },
+                  icon: const Icon(Icons.newspaper),
+                  label: const Text("News"),
                 ),
               ],
             ),
