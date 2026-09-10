@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project/models/player_setup_screen.dart';
 
 void main() {
   runApp(const MintedApp());
@@ -62,7 +63,12 @@ class HomeScreen extends StatelessWidget {
                 height: 58,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Player setup will be added here.
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PlayerSetupScreen(),
+                      ),
+                    );
                   },
                   child: const Text(
                     'START GAME',

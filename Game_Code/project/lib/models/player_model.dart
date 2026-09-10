@@ -2,10 +2,10 @@ class Player {
   final String id;
   String name;
   String color;
-  String pathType; // "Degree" or "Non-Degree"
+  String pathType;
   String career;
-  Map<String, dynamic> appValues; // Stores app-related game values
-  List<Map<String, dynamic>> history; // Stores player action history
+  Map<String, dynamic> appValues;
+  List<Map<String, dynamic>> history;
 
   Player({
     required this.id,
