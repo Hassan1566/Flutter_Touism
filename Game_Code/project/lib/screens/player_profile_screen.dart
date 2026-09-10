@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/player_model.dart';
+import '../services/quiz_service.dart';
 
 class PlayerProfileScreen extends StatefulWidget {
   final List<Player> players;
@@ -40,7 +41,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
           ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,29 +133,40 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
               ),
             ),
             const SizedBox(height: 20),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  showQuizDialog(context, activePlayer, () {
+                    setState(() {});
+                  });
+                },
+                child: const Text("Quiz"),
+              ),
+            ),
+            const SizedBox(height: 20),
             const Text(
               'App-Related Values & History Log',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            Expanded(
-              child: activePlayer.history.isEmpty
-                  ? const Center(
-                      child: Text(
-                        'No tile calculations recorded yet for this player.',
-                      ),
-                    )
-                  : ListView.builder(
-                      itemCount: activePlayer.history.length,
-                      itemBuilder: (context, index) {
-                        var log = activePlayer.history[index];
-                        return ListTile(
-                          title: Text(log['title'] ?? 'Action'),
-                          subtitle: Text('Result: ${log['result']}'),
-                        );
-                      },
+            activePlayer.history.isEmpty
+                ? const Center(
+                    child: Text(
+                      'No tile calculations recorded yet for this player.',
                     ),
-            ),
+                  )
+                : ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: activePlayer.history.length,
+                    itemBuilder: (context, index) {
+                      var log = activePlayer.history[index];
+                      return ListTile(
+                        title: Text(log['title'] ?? 'Action'),
+                        subtitle: Text('Result: ${log['result']}'),
+                      );
+                    },
+                  ),
           ],
         ),
       ),
