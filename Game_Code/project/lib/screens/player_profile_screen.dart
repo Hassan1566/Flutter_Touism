@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/player_model.dart';
 import '../services/quiz_service.dart';
+import '../services/banking_service.dart';
 
 class PlayerProfileScreen extends StatefulWidget {
   final List<Player> players;
@@ -133,15 +134,31 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  showQuizDialog(context, activePlayer, () {
-                    setState(() {});
-                  });
-                },
-                child: const Text("Quiz"),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    showQuizDialog(context, activePlayer, () {
+                      setState(() {});
+                    });
+                  },
+                  icon: const Icon(Icons.quiz),
+                  label: const Text("Quiz"),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    BankingService.takeLoan(activePlayer, 1000, () {
+                      setState(() {});
+                    });
+                    BankingService.processInvestment(activePlayer, 5000, () {
+                      setState(() {});
+                    });
+                  },
+                  icon: const Icon(Icons.account_balance),
+                  label: const Text("Banking"),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             const Text(
