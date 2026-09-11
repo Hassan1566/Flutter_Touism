@@ -1,7 +1,8 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 
 import '../models/player_model.dart';
-
 import '../services/quiz_service.dart';
 import '../services/banking_service.dart';
 
@@ -17,6 +18,7 @@ class PlayerProfileScreen extends StatefulWidget {
 
 class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
   int _activePlayerIndex = 0;
+  int _currentYear = 1;
 
   Color _parseColor(String colorName) {
     switch (colorName.toLowerCase()) {
@@ -37,6 +39,26 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
     }
   }
 
+  void _nextTurn() {
+    setState(() {
+      if (_activePlayerIndex < widget.players.length - 1) {
+        _activePlayerIndex++;
+      } else {
+        _activePlayerIndex = 0;
+        _currentYear++;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '🎉 Year $_currentYear has begun! All players prepare for a new round.',
+            ),
+            backgroundColor: Colors.deepPurple,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     Player activePlayer = widget.players[_activePlayerIndex];
@@ -44,19 +66,43 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Player Profiles'),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Profiles'),
+            const SizedBox(width: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Year $_currentYear',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
         actions: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: DropdownButton<int>(
               value: _activePlayerIndex,
               dropdownColor: Colors.blueGrey,
+              underline: const SizedBox(),
               items: List.generate(widget.players.length, (index) {
                 return DropdownMenuItem(
                   value: index,
                   child: Text(
                     widget.players[index].name,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 );
               }),
@@ -158,39 +204,6 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    showQuizDialog(context, activePlayer, () {
-                      setState(() {});
-                    });
-                  },
-                  icon: const Icon(Icons.quiz),
-                  label: const Text("Quiz"),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    showBankingDialog(context, activePlayer, () {
-                      setState(() {});
-                    });
-                  },
-                  icon: const Icon(Icons.account_balance),
-                  label: const Text("Banking"),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    showNewsStartupDialog(context, activePlayer, () {
-                      setState(() {});
-                    });
-                  },
-                  icon: const Icon(Icons.newspaper),
-                  label: const Text("News"),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
             const Text(
               'App-Related Values & History Log',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -198,8 +211,12 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
             const SizedBox(height: 10),
             activePlayer.history.isEmpty
                 ? const Center(
-                    child: Text(
-                      'No tile calculations recorded yet for this player.',
+                    child: Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: Text(
+                        'No tile calculations recorded yet for this player.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
                     ),
                   )
                 : ListView.builder(
@@ -215,6 +232,64 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                     },
                   ),
           ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      showQuizDialog(context, activePlayer, () {
+                        setState(() {});
+                      });
+                    },
+                    icon: const Icon(Icons.quiz),
+                    label: const Text("Quiz"),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      showBankingDialog(context, activePlayer, () {
+                        setState(() {});
+                      });
+                    },
+                    icon: const Icon(Icons.account_balance),
+                    label: const Text("Banking"),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      showNewsStartupDialog(context, activePlayer, () {
+                        setState(() {});
+                      });
+                    },
+                    icon: const Icon(Icons.newspaper),
+                    label: const Text("News"),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(50),
+                  backgroundColor: Colors.deepPurple,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: _nextTurn,
+                icon: const Icon(Icons.arrow_forward),
+                label: Text(
+                  _activePlayerIndex == widget.players.length - 1
+                      ? 'End Round & Advance Year'
+                      : 'Pass to Next Player',
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
