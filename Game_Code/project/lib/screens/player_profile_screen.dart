@@ -46,10 +46,15 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
       } else {
         _activePlayerIndex = 0;
         _currentYear++;
+
+        for (var player in widget.players) {
+          player.balance += player.salary;
+          player.activeLoan['amount'] += 5 / 100 * player.activeLoan['amount'];
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '🎉 Year $_currentYear has begun! All players prepare for a new round.',
+              '🎉 Year $_currentYear has begun! Paydays processed for all players.',
             ),
             backgroundColor: Colors.deepPurple,
             duration: const Duration(seconds: 3),
