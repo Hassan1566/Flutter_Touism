@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project/screens/player_setup_screen.dart';
+import 'package:project/screens/how_to_play_screen.dart';
 
 void main() {
   runApp(const MintedApp());
@@ -85,7 +86,12 @@ class HomeScreen extends StatelessWidget {
                 height: 58,
                 child: OutlinedButton(
                   onPressed: () {
-                    // How to Play will be added here.
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HowToPlayScreen(),
+                      ),
+                    );
                   },
                   child: const Text(
                     'HOW TO PLAY',

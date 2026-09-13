@@ -223,7 +223,7 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
                   int initialBalance = path == 'College' ? 2000 : 2500;
 
                   return Player(
-                    id: 'p_${index + 1}',
+                    id: index + 1,
                     name: _nameControllers[index].text.trim(),
                     color: _selectedColors[index],
                     pathType: path,

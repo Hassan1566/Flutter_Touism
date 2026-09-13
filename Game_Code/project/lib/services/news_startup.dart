@@ -64,11 +64,7 @@ void showNewsStartupDialog(
           ElevatedButton(
             onPressed: () {
               activePlayer.balance += amount;
-              activePlayer.history.add({
-                'title': randomEvent['title'],
-                'result': '${amount >= 0 ? '+' : ''}$amount Mints',
-                'timestamp': DateTime.now().toString(),
-              });
+              activePlayer.addHistory(randomEvent['title'] as String, amount);
               onUpdate();
               Navigator.pop(context);
             },

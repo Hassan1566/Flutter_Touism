@@ -93,21 +93,34 @@ void showBankingDialog(
 
 void _processLoan(Player player, int amount, VoidCallback onUpdate) {
   player.balance += amount;
-  player.history.add({
-    'title': 'Loan Taken',
-    'result': '+$amount Mints',
-    'timestamp': DateTime.now().toString(),
-  });
+  int currentLoan = player.loan?.principal ?? 0;
+  player.loan = LoanData(
+    principal: currentLoan + amount,
+    startYear: player.loan?.startYear ?? 1,
+  );
+  player.addHistory('Loan Taken', amount);
   onUpdate();
 }
 
 void _processInvestment(Player player, int principal, VoidCallback onUpdate) {
-  int totalReturn = principal + (principal * 0.05 * 3).toInt();
-  player.balance += totalReturn;
-  player.history.add({
-    'title': 'Investment Matured',
-    'result': '+$totalReturn Mints',
-    'timestamp': DateTime.now().toString(),
-  });
+  // 1. Check if the player actually has enough cash to invest
+  if (player.balance < principal) {
+    // Optionally: show an error dialog to the user here
+    return;
+  }
+
+  // 2. Deduct the invested cash from their active balance
+  player.balance -= principal;
+
+  // 3. Safely add the money to their active investments tracking
+  int currentInvest = player.investment?.principal ?? 0;
+  player.investment = InvestmentData(
+    principal: currentInvest + principal,
+    startYear: player.investment?.startYear ?? 1,
+  );
+
+  // 4. Log the transaction accurately
+  player.addHistory('Investment Made', -principal);
+
   onUpdate();
 }

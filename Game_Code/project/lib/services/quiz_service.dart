@@ -53,10 +53,6 @@ void _processReward(
   VoidCallback onUpdate,
 ) {
   player.balance += amount;
-  player.history.add({
-    'title': 'Quiz ($difficulty)',
-    'result': '+$amount Mints',
-    'timestamp': DateTime.now().toString(),
-  });
+  player.addHistory('Quiz ($difficulty)', amount);
   onUpdate();
 }

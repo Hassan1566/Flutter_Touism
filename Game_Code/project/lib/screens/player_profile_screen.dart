@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import '../models/player_model.dart';
 import '../services/quiz_service.dart';
 import '../services/banking_service.dart';
+import '../services/news_startup.dart';
 
-import 'package:project/services/news_startup.dart';
+import '../widgets/game_over_service.dart';
 
 class PlayerProfileScreen extends StatefulWidget {
   final List<Player> players;
@@ -49,7 +50,30 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
 
         for (var player in widget.players) {
           player.balance += player.salary;
-          player.activeLoan['amount'] += 5 / 100 * player.activeLoan['amount'];
+          int currentLoan = player.loan?.principal ?? 0;
+          if (currentLoan > 0) {
+            int interest = (currentLoan * 0.10).toInt();
+            player.loan = LoanData(
+              principal: currentLoan + interest,
+              startYear: player.loan?.startYear ?? 1,
+            );
+          }
+          int currentInvestment = player.investment?.principal ?? 0;
+          if (currentInvestment > 0) {
+            int interest = (currentInvestment * 0.5).toInt();
+            player.investment = InvestmentData(
+              principal: currentInvestment + interest,
+              startYear: player.investment?.startYear ?? 1,
+            );
+          }
+        }
+        if (_currentYear > 3) {
+          showGameOverDialog(
+            context,
+            widget.players,
+            () => Navigator.pop(context),
+          );
+          return;
         }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -204,6 +228,59 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                         ),
                       ],
                     ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Active Loan:',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        Text(
+                          '${activePlayer.loan?.principal ?? 0} Mints',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Active Investment:',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        Text(
+                          '${activePlayer.investment?.principal ?? 0} Mints',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Net Worth (Cash + Investments - Loans):',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        Text(
+                          '${activePlayer.calculateTotalAssets()} Mints',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -231,8 +308,8 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                     itemBuilder: (context, index) {
                       var log = activePlayer.history[index];
                       return ListTile(
-                        title: Text(log['title'] ?? 'Action'),
-                        subtitle: Text('Result: ${log['result']}'),
+                        title: Text(log.action),
+                        subtitle: Text('Result: ${log.amount > 0 ? '+' : ''}${log.amount} Mints'),
                       );
                     },
                   ),
