@@ -17,12 +17,7 @@ class GameService {
     }
 
     // Startup income
-    if (player.hasStartup) {
-      player.startupFund += 200;
-
-      player.addHistory('Startup income', 200);
-    }
-
+    processStartupGo(player);
     // GO tax
     final totalAssets = _calculateAssetsBeforeTax(gameState, player);
 
@@ -182,6 +177,65 @@ class GameService {
     renter.addHistory('Paid rent for ${property.name}', -rent);
 
     owner.addHistory('Received rent from ${renter.name}', rent);
+
+    return true;
+  }
+
+  /// Adds the startup income when a player
+  /// passes GO.
+  static void processStartupGo(Player player) {
+    if (!player.hasStartup) {
+      return;
+    }
+
+    player.startupFund += 200;
+
+    player.addHistory('Startup received +200 at GO', 200);
+  }
+
+  /// Fixed solution for a startup event.
+  ///
+  /// Player pays 200.
+  static bool handleStartupFixedOption(Player player) {
+    if (!player.hasStartup) {
+      return false;
+    }
+
+    if (player.balance < 200) {
+      return false;
+    }
+
+    player.removeMoney(200);
+
+    player.addHistory('Startup event - Fixed solution', -200);
+
+    return true;
+  }
+
+  /// Risk option for a startup event.
+  ///
+  /// The physical board-game dice result is supplied
+  /// manually by the user.
+  ///
+  /// Loss = dice result × 100
+  static bool handleStartupRiskOption(Player player, int diceResult) {
+    if (!player.hasStartup) {
+      return false;
+    }
+
+    if (diceResult < 1 || diceResult > 6) {
+      return false;
+    }
+
+    final amount = diceResult * 100;
+
+    if (player.balance < amount) {
+      return false;
+    }
+
+    player.removeMoney(amount);
+
+    player.addHistory('Startup event - Risk ($diceResult x 100)', -amount);
 
     return true;
   }
