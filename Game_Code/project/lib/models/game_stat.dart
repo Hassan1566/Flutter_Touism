@@ -1,5 +1,6 @@
-import 'player_model.dart';
-import 'property_model.dart';
+import '../models/player_model.dart';
+import '../models/property_model.dart';
+import '../services/game_service.dart';
 
 class GameState {
   /// All players in the current game.
@@ -74,6 +75,8 @@ class GameState {
     }
 
     currentYear++;
+
+    GameService.processNewYear(this);
   }
 
   /// Find a player by ID.

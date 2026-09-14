@@ -7,6 +7,7 @@ import '../models/game_stat.dart';
 import '../services/quiz_service.dart';
 import '../services/banking_service.dart';
 import '../services/news_startup.dart';
+import '../services/startup_service.dart';
 
 import '../widgets/game_over_service.dart';
 
@@ -327,6 +328,17 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                     },
                     icon: const Icon(Icons.newspaper),
                     label: const Text("News"),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      StartupService.showStartupEvent(
+                        context: context,
+                        player: activePlayer,
+                        onUpdated: () => setState(() {}),
+                      );
+                    },
+                    icon: const Icon(Icons.business),
+                    label: const Text('Startup'),
                   ),
                 ],
               ),

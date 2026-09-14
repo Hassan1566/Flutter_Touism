@@ -58,7 +58,12 @@ void showBankingDialog(
                   onPressed: () {
                     int amount = int.tryParse(amountController.text) ?? 0;
                     if (amount > 0) {
-                      _processInvestment(activePlayer, amount, onUpdate);
+                      _processInvestment(
+                        context,
+                        activePlayer,
+                        amount,
+                        onUpdate,
+                      );
                       Navigator.pop(context);
                     } else if (amount == 0) {
                       showDialog(
@@ -102,10 +107,31 @@ void _processLoan(Player player, int amount, VoidCallback onUpdate) {
   onUpdate();
 }
 
-void _processInvestment(Player player, int principal, VoidCallback onUpdate) {
+void _processInvestment(
+  BuildContext context,
+  Player player,
+  int principal,
+  VoidCallback onUpdate,
+) {
   // 1. Check if the player actually has enough cash to invest
   if (player.balance < principal) {
-    // Optionally: show an error dialog to the user here
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: const Text('You don\'t have enough money to invest.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
     return;
   }
 
