@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/player_model.dart';
+import '../models/game_stat.dart';
 import '../services/quiz_service.dart';
 import '../services/banking_service.dart';
 import '../services/news_startup.dart';
@@ -10,17 +11,15 @@ import '../services/news_startup.dart';
 import '../widgets/game_over_service.dart';
 
 class PlayerProfileScreen extends StatefulWidget {
-  final List<Player> players;
-  const PlayerProfileScreen({super.key, required this.players});
+  final GameState gameState;
+
+  const PlayerProfileScreen({super.key, required this.gameState});
 
   @override
   State<PlayerProfileScreen> createState() => _PlayerProfileScreenState();
 }
 
 class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
-  int _activePlayerIndex = 0;
-  int _currentYear = 1;
-
   Color _parseColor(String colorName) {
     switch (colorName.toLowerCase()) {
       case 'red':
@@ -41,56 +40,29 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
   }
 
   void _nextTurn() {
-    setState(() {
-      if (_activePlayerIndex < widget.players.length - 1) {
-        _activePlayerIndex++;
-      } else {
-        _activePlayerIndex = 0;
-        _currentYear++;
+    final completedRound = widget.gameState.nextTurn();
 
-        for (var player in widget.players) {
-          player.balance += player.salary;
-          int currentLoan = player.loan?.principal ?? 0;
-          if (currentLoan > 0) {
-            int interest = (currentLoan * 0.10).toInt();
-            player.loan = LoanData(
-              principal: currentLoan + interest,
-              startYear: player.loan?.startYear ?? 1,
-            );
-          }
-          int currentInvestment = player.investment?.principal ?? 0;
-          if (currentInvestment > 0) {
-            int interest = (currentInvestment * 0.5).toInt();
-            player.investment = InvestmentData(
-              principal: currentInvestment + interest,
-              startYear: player.investment?.startYear ?? 1,
-            );
-          }
-        }
-        if (_currentYear > 3) {
-          showGameOverDialog(
-            context,
-            widget.players,
-            () => Navigator.pop(context),
-          );
-          return;
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '🎉 Year $_currentYear has begun! Paydays processed for all players.',
-            ),
-            backgroundColor: Colors.deepPurple,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-    });
+    setState(() {});
+
+    if (widget.gameState.isGameFinished) {
+      showGameOverDialog(context, widget.gameState.players, () {
+        Navigator.popUntil(context, (route) => route.isFirst);
+      });
+      return;
+    }
+
+    if (completedRound) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Year ${widget.gameState.currentYear} started.'),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    Player activePlayer = widget.players[_activePlayerIndex];
+    Player activePlayer = widget.gameState.activePlayer;
     Color playerThemeColor = _parseColor(activePlayer.color);
 
     return Scaffold(
@@ -107,7 +79,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                'Year $_currentYear',
+                'Year ${widget.gameState.currentYear}',
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -120,14 +92,14 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: DropdownButton<int>(
-              value: _activePlayerIndex,
+              value: widget.gameState.activePlayerIndex,
               dropdownColor: Colors.blueGrey,
               underline: const SizedBox(),
-              items: List.generate(widget.players.length, (index) {
+              items: List.generate(widget.gameState.players.length, (index) {
                 return DropdownMenuItem(
                   value: index,
                   child: Text(
-                    widget.players[index].name,
+                    widget.gameState.players[index].name,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -135,7 +107,9 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                   ),
                 );
               }),
-              onChanged: (val) => setState(() => _activePlayerIndex = val!),
+              onChanged: (val) => setState(() {
+                widget.gameState.activePlayerIndex = val!;
+              }),
             ),
           ),
         ],
@@ -309,7 +283,9 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                       var log = activePlayer.history[index];
                       return ListTile(
                         title: Text(log.action),
-                        subtitle: Text('Result: ${log.amount > 0 ? '+' : ''}${log.amount} Mints'),
+                        subtitle: Text(
+                          'Result: ${log.amount > 0 ? '+' : ''}${log.amount} Mints',
+                        ),
                       );
                     },
                   ),
@@ -364,7 +340,8 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                 onPressed: _nextTurn,
                 icon: const Icon(Icons.arrow_forward),
                 label: Text(
-                  _activePlayerIndex == widget.players.length - 1
+                  widget.gameState.activePlayerIndex ==
+                          widget.gameState.players.length - 1
                       ? 'End Round & Advance Year'
                       : 'Pass to Next Player',
                   style: const TextStyle(fontSize: 16),

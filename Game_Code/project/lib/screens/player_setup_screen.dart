@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/player_model.dart';
+import '../models/game_stat.dart';
 import 'player_profile_screen.dart';
 
 class PlayerSetupScreen extends StatefulWidget {
@@ -236,7 +237,8 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => PlayerProfileScreen(players: players),
+                    builder: (context) =>
+                        PlayerProfileScreen(gameState: GameState(players: players)),
                   ),
                 );
               },
