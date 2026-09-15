@@ -50,45 +50,56 @@ void main() {
       expect(game.isGameFinished, true);
     });
 
-    test('Year 3 loan is settled with principal plus one final interest payment', () {
-      final player = makePlayer(
-        id: 1,
-        balance: 2000,
-        loan: LoanData(principal: 400, startYear: 1),
-      );
-      final game = GameState(players: [player]);
+    test(
+      'Year 3 loan is settled after Year 1 and Year 2 interest',
+      () {
+        final player = makePlayer(
+          id: 1,
+          balance: 2000,
+          loan: LoanData(principal: 400, startYear: 1),
+        );
+        final game = GameState(players: [player]);
 
-      game.nextTurn();
-      game.nextTurn();
-      game.nextTurn();
+        game.nextTurn();
+        game.nextTurn();
+        game.nextTurn();
 
-      expect(player.loan, isNull);
-      expect(player.balance, 1480);
-      expect(
-        player.history.map((entry) => entry.action),
-        contains('Loan Repaid'),
-      );
-    });
+        // 2000 - 40 - 40 - (400 + 40) = 1480.
+        expect(player.loan, isNull);
+        expect(player.balance, 1480);
+        expect(
+          player.history.map((entry) => entry.action),
+          contains('Loan Repaid'),
+        );
+      },
+    );
 
-    test('Year 3 investment returns principal plus three years of simple interest', () {
-      final player = makePlayer(
-        id: 1,
-        balance: 2100,
-        investment: InvestmentData(principal: 400, startYear: 1),
-      );
-      final game = GameState(players: [player]);
+    test(
+      'Year 3 investment returns principal plus three years of simple interest',
+      () {
+        final player = makePlayer(
+          id: 1,
+          balance: 2100,
+          investment: InvestmentData(principal: 400, startYear: 1),
+        );
+        final game = GameState(players: [player]);
 
-      game.nextTurn();
-      game.nextTurn();
-      game.nextTurn();
+        game.nextTurn();
+        game.nextTurn();
+        game.nextTurn();
 
-      expect(player.investment, isNull);
-      expect(player.balance, 2560);
-      expect(
-        player.history.map((entry) => entry.action),
-        contains('Investment Matured'),
-      );
-    });
+        // 2100 + (400 + 20 + 20 + 20) = 2560? No: the 400
+        // principal was already deducted when the investment was created.
+        // Here balance is deliberately represented after that deduction,
+        // so maturity adds 460 to produce 2560.
+        expect(player.investment, isNull);
+        expect(player.balance, 2560);
+        expect(
+          player.history.map((entry) => entry.action),
+          contains('Investment Matured'),
+        );
+      },
+    );
 
     test('net worth includes startup funds and property value', () {
       final player = makePlayer(id: 1, balance: 2000, startupFund: 400);
