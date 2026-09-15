@@ -8,6 +8,7 @@ import '../services/quiz_service.dart';
 import '../services/banking_service.dart';
 import '../services/news_service.dart';
 import '../services/startup_service.dart';
+import '../services/storage_service.dart';
 
 import '../widgets/game_over_service.dart';
 
@@ -304,7 +305,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                 children: [
                   ElevatedButton.icon(
                     onPressed: () {
-                      showQuizDialog(context, activePlayer, () {
+                      QuizService.showQuizDialog(context, activePlayer, () {
                         setState(() {});
                       });
                     },
@@ -347,6 +348,25 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                     label: const Text('Startup'),
                   ),
                 ],
+              ),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  final saved = await StorageService.saveGame(widget.gameState);
+
+                  if (!context.mounted) return;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        saved
+                            ? 'Game saved successfully.'
+                            : 'Could not save game.',
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.save),
+                label: const Text('Save Game'),
               ),
               const SizedBox(height: 10),
               ElevatedButton.icon(
