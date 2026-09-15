@@ -25,26 +25,13 @@ class StartupService {
               onPressed: () {
                 final success = GameService.handleStartupFixedOption(player);
 
-                Navigator.pop(context);
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      success
-                          ? 'You paid 200 for the startup event.'
-                          : 'Not enough balance.',
-                    ),
-                  ),
-                );
-
-                onUpdated();
+                Navigator.pop(context, success);
               },
               child: const Text('Pay 200'),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
-
                 _showRiskDiceInput(
                   context: context,
                   player: player,
@@ -56,20 +43,34 @@ class StartupService {
           ],
         );
       },
-    );
+    ).then((result) {
+      if (result is! bool) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result
+                ? 'You paid 200 for the startup event.'
+                : 'Not enough balance.',
+          ),
+        ),
+      );
+
+      onUpdated();
+    });
   }
 
   /// Gets the physical dice result from the user.
-  static void _showRiskDiceInput({
+  static Future<void> _showRiskDiceInput({
     required BuildContext context,
     required Player player,
     required VoidCallback onUpdated,
-  }) {
+  }) async {
     final controller = TextEditingController();
 
-    showDialog(
+    final result = await showDialog<bool>(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Startup Risk'),
           content: TextField(
@@ -83,17 +84,16 @@ class StartupService {
           actions: [
             TextButton(
               onPressed: () {
-                controller.dispose();
-                Navigator.pop(context);
+                Navigator.pop(dialogContext);
               },
               child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () {
-                final result = int.tryParse(controller.text);
+                final diceResult = int.tryParse(controller.text.trim());
 
-                if (result == null || result < 1 || result > 6) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                if (diceResult == null || diceResult < 1 || diceResult > 6) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
                     const SnackBar(
                       content: Text('Enter a dice result from 1 to 6.'),
                     ),
@@ -103,23 +103,10 @@ class StartupService {
 
                 final success = GameService.handleStartupRiskOption(
                   player,
-                  result,
+                  diceResult,
                 );
 
-                controller.dispose();
-                Navigator.pop(context);
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      success
-                          ? 'Startup risk cost: ${result * 100}'
-                          : 'Not enough balance.',
-                    ),
-                  ),
-                );
-
-                onUpdated();
+                Navigator.pop(dialogContext, success);
               },
               child: const Text('Apply'),
             ),
@@ -127,5 +114,21 @@ class StartupService {
         );
       },
     );
+
+    controller.dispose();
+
+    if (!context.mounted || result == null) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          result
+              ? 'Startup risk cost applied.'
+              : 'Not enough balance.',
+        ),
+      ),
+    );
+
+    onUpdated();
   }
 }
