@@ -10,9 +10,13 @@ class StartupService {
     required Player player,
     required VoidCallback onUpdated,
   }) {
-    showDialog(
-      context: context,
-      builder: (context) {
+    // Keep the parent screen context. Do not use the dialog's context to
+    // open another dialog after the first dialog has been popped.
+    final parentContext = context;
+
+    showDialog<bool>(
+      context: parentContext,
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Startup Event'),
           content: const Text(
@@ -25,15 +29,16 @@ class StartupService {
               onPressed: () {
                 final success = GameService.handleStartupFixedOption(player);
 
-                Navigator.pop(context, success);
+                Navigator.pop(dialogContext, success);
               },
               child: const Text('Pay 200'),
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pop(dialogContext);
+
                 _showRiskDiceInput(
-                  context: context,
+                  context: parentContext,
                   player: player,
                   onUpdated: onUpdated,
                 );
@@ -44,9 +49,9 @@ class StartupService {
         );
       },
     ).then((result) {
-      if (result is! bool) return;
+      if (!parentContext.mounted || result == null) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(parentContext).showSnackBar(
         SnackBar(
           content: Text(
             result
@@ -66,69 +71,72 @@ class StartupService {
     required Player player,
     required VoidCallback onUpdated,
   }) async {
+    final parentContext = context;
     final controller = TextEditingController();
 
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Startup Risk'),
-          content: TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Physical dice result',
-              hintText: 'Enter 1 - 6',
+    try {
+      final result = await showDialog<bool>(
+        context: parentContext,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text('Startup Risk'),
+            content: TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Physical dice result',
+                hintText: 'Enter 1 - 6',
+              ),
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
-              },
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final diceResult = int.tryParse(controller.text.trim());
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                },
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  final diceResult = int.tryParse(controller.text.trim());
 
-                if (diceResult == null || diceResult < 1 || diceResult > 6) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    const SnackBar(
-                      content: Text('Enter a dice result from 1 to 6.'),
-                    ),
+                  if (diceResult == null || diceResult < 1 || diceResult > 6) {
+                    ScaffoldMessenger.of(dialogContext).showSnackBar(
+                      const SnackBar(
+                        content: Text('Enter a dice result from 1 to 6.'),
+                      ),
+                    );
+                    return;
+                  }
+
+                  final success = GameService.handleStartupRiskOption(
+                    player,
+                    diceResult,
                   );
-                  return;
-                }
 
-                final success = GameService.handleStartupRiskOption(
-                  player,
-                  diceResult,
-                );
+                  Navigator.pop(dialogContext, success);
+                },
+                child: const Text('Apply'),
+              ),
+            ],
+          );
+        },
+      );
 
-                Navigator.pop(dialogContext, success);
-              },
-              child: const Text('Apply'),
-            ),
-          ],
-        );
-      },
-    );
+      if (!parentContext.mounted || result == null) return;
 
-    controller.dispose();
-
-    if (!context.mounted || result == null) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          result
-              ? 'Startup risk cost applied.'
-              : 'Not enough balance.',
+      ScaffoldMessenger.of(parentContext).showSnackBar(
+        SnackBar(
+          content: Text(
+            result
+                ? 'Startup risk cost applied.'
+                : 'Not enough balance.',
+          ),
         ),
-      ),
-    );
+      );
 
-    onUpdated();
+      onUpdated();
+    } finally {
+      controller.dispose();
+    }
   }
 }
