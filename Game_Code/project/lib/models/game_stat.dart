@@ -3,25 +3,12 @@ import '../models/property_model.dart';
 import '../services/game_service.dart';
 
 class GameState {
-  /// All players in the current game.
   List<Player> players;
-
-  /// All properties available in MINTED.
   List<Property> properties;
-
-  /// Index of the player whose turn it currently is.
   int activePlayerIndex;
-
-  /// Current game year.
   int currentYear;
-
-  /// Maximum number of years in the game.
   final int maxYears;
-
-  /// Whether the game has started.
   bool isGameStarted;
-
-  /// Whether the game has finished.
   bool isGameFinished;
 
   GameState({
@@ -32,23 +19,13 @@ class GameState {
     this.maxYears = 3,
     this.isGameStarted = true,
     this.isGameFinished = false,
-  }) : players = players ?? [],
-       properties = properties ?? [];
+  })  : players = players ?? [],
+        properties = properties ?? [];
 
-  /// Returns the player whose turn it currently is.
-  Player get activePlayer {
-    return players[activePlayerIndex];
-  }
+  Player get activePlayer => players[activePlayerIndex];
 
-  /// Number of players.
-  int get playerCount {
-    return players.length;
-  }
+  int get playerCount => players.length;
 
-  /// Move to the next player.
-  ///
-  /// When the last player finishes their turn,
-  /// a new year begins.
   bool nextTurn() {
     if (players.isEmpty || isGameFinished) {
       return false;
@@ -59,75 +36,51 @@ class GameState {
       return false;
     }
 
-    // Last player completed the round.
     activePlayerIndex = 0;
-
     advanceYear();
-
     return true;
   }
 
-  /// Advance the game by one year.
+  /// Completes the current year, processes yearly banking, then either
+  /// starts the next year or finishes after the final year.
   void advanceYear() {
-    if (currentYear >= maxYears) {
+    final completedYear = currentYear;
+
+    GameService.processNewYear(this, completedYear);
+
+    if (completedYear >= maxYears) {
       isGameFinished = true;
       return;
     }
 
     currentYear++;
-
-    GameService.processNewYear(this);
   }
 
-  /// Find a player by ID.
   Player? getPlayerById(int playerId) {
     for (final player in players) {
-      if (player.id == playerId) {
-        return player;
-      }
+      if (player.id == playerId) return player;
     }
-
     return null;
   }
 
-  /// Find a property by ID.
   Property? getPropertyById(String propertyId) {
     for (final property in properties) {
-      if (property.id == propertyId) {
-        return property;
-      }
+      if (property.id == propertyId) return property;
     }
-
     return null;
   }
 
-  /// Find the player who owns a property.
   Player? getPropertyOwner(String propertyId) {
     final property = getPropertyById(propertyId);
-
-    if (property == null || property.ownerId == null) {
-      return null;
-    }
-
+    if (property == null || property.ownerId == null) return null;
     return getPlayerById(int.tryParse(property.ownerId!) ?? -1);
   }
 
-  /// Purchase a property for a player.
-  ///
-  /// Returns false if:
-  /// - player doesn't exist
-  /// - property doesn't exist
-  /// - property is already owned
-  /// - player cannot afford it
   bool purchaseProperty(int playerId, String propertyId) {
     final player = getPlayerById(playerId);
     final property = getPropertyById(propertyId);
 
-    if (player == null || property == null) {
-      return false;
-    }
-
-    if (property.isOwned) {
+    if (player == null || property == null || property.isOwned) {
       return false;
     }
 
@@ -136,29 +89,19 @@ class GameState {
     }
 
     property.ownerId = player.id.toString();
-
     if (!player.propertyIds.contains(property.id)) {
       player.propertyIds.add(property.id);
     }
 
     player.addHistory('Purchased ${property.name}', -property.price);
-
     return true;
   }
 
-  /// Charge rent when a player lands on another
-  /// player's property.
-  ///
-  /// Returns false if rent cannot be charged.
   bool payRent(int renterId, String propertyId) {
     final renter = getPlayerById(renterId);
     final property = getPropertyById(propertyId);
 
-    if (renter == null || property == null) {
-      return false;
-    }
-
-    if (!property.isOwned) {
+    if (renter == null || property == null || !property.isOwned) {
       return false;
     }
 
@@ -167,75 +110,52 @@ class GameState {
     }
 
     final owner = getPropertyOwner(propertyId);
-
-    if (owner == null) {
-      return false;
-    }
-
-    if (!renter.removeMoney(property.rent)) {
+    if (owner == null || !renter.removeMoney(property.rent)) {
       return false;
     }
 
     owner.addMoney(property.rent);
-
     renter.addHistory('Paid rent for ${property.name}', -property.rent);
-
     owner.addHistory('Received rent from ${renter.name}', property.rent);
-
     return true;
   }
 
-  /// Calculate the value of properties owned by a player.
   int propertyValueForPlayer(Player player) {
     int total = 0;
-
     for (final property in properties) {
       if (property.ownerId == player.id.toString()) {
         total += property.price;
       }
     }
-
     return total;
   }
 
-  /// Calculate the current investment value.
   int investmentValueForPlayer(Player player) {
-    if (player.investment == null) {
-      return 0;
-    }
-
-    return player.investment!.principal;
+    return player.investment?.principal ?? 0;
   }
 
-  /// Calculate a player's net worth.
-  ///
-  /// Cash + property value + investment value - loan liability.
+  /// Net worth includes cash, property, active investment principal and
+  /// startup funds, less outstanding loan principal.
   int calculateNetWorth(Player player) {
-    final propertyValue = propertyValueForPlayer(player);
-    final investmentValue = investmentValueForPlayer(player);
-    final loanAmount = player.loan?.principal ?? 0;
-
-    return player.balance + propertyValue + investmentValue - loanAmount;
+    return player.balance +
+        propertyValueForPlayer(player) +
+        investmentValueForPlayer(player) +
+        player.startupFund -
+        (player.loan?.principal ?? 0);
   }
 
-  /// Find the current richest player.
   Player? getWinner() {
-    if (players.isEmpty) {
-      return null;
-    }
+    if (players.isEmpty) return null;
 
     Player winner = players.first;
-
     for (final player in players.skip(1)) {
       if (calculateNetWorth(player) > calculateNetWorth(winner)) {
         winner = player;
       }
     }
-
     return winner;
   }
 
-  /// Convert the complete game state to JSON.
   Map<String, dynamic> toJson() {
     return {
       'players': players.map((player) => player.toJson()).toList(),
@@ -248,19 +168,26 @@ class GameState {
     };
   }
 
-  /// Restore a game state from JSON.
   factory GameState.fromJson(Map<String, dynamic> json) {
+    final players = (json['players'] as List? ?? [])
+        .map((player) => Player.fromJson(Map<String, dynamic>.from(player)))
+        .toList();
+
+    final rawIndex = json['activePlayerIndex'] ?? 0;
+    final safeIndex = players.isEmpty
+        ? 0
+        : (rawIndex is int ? rawIndex : int.tryParse('$rawIndex') ?? 0)
+            .clamp(0, players.length - 1);
+
     return GameState(
-      players: (json['players'] as List? ?? [])
-          .map((player) => Player.fromJson(Map<String, dynamic>.from(player)))
-          .toList(),
+      players: players,
       properties: (json['properties'] as List? ?? [])
           .map(
             (property) =>
                 Property.fromJson(Map<String, dynamic>.from(property)),
           )
           .toList(),
-      activePlayerIndex: json['activePlayerIndex'] ?? 0,
+      activePlayerIndex: safeIndex,
       currentYear: json['currentYear'] ?? 1,
       maxYears: json['maxYears'] ?? 3,
       isGameStarted: json['isGameStarted'] ?? true,
