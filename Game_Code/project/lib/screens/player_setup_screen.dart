@@ -16,6 +16,7 @@ class PlayerSetupScreen extends StatefulWidget {
 
 class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
   int _numberOfPlayers = 2;
+  bool _isStartingGame = false;
   final List<TextEditingController> _nameControllers = [];
   final List<String> _selectedColors = [];
   final List<String> _selectedPaths = [];
@@ -39,7 +40,14 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
     'Activist': 50,
   };
 
-  final List<String> _availableColors = ['Red', 'Blue', 'Green', 'Yellow', 'Purple', 'Orange'];
+  final List<String> _availableColors = [
+    'Red',
+    'Blue',
+    'Green',
+    'Yellow',
+    'Purple',
+    'Orange',
+  ];
 
   @override
   void initState() {
@@ -73,22 +81,33 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
   }
 
   Future<void> _startGame() async {
-    final names = _nameControllers.map((controller) => controller.text.trim()).toList();
+    if (_isStartingGame) return;
+
+    final names = _nameControllers
+        .map((controller) => controller.text.trim())
+        .toList();
+
     if (names.any((name) => name.isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Every player must have a name.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Every player must have a name.')),
+      );
       return;
     }
 
     final duplicateNames = names.length != names.toSet().length;
     if (duplicateNames) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Player names must be unique.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Player names must be unique.')),
+      );
       return;
     }
 
     final players = List<Player>.generate(_numberOfPlayers, (index) {
       final path = _selectedPaths[index];
       final career = _selectedCareers[index];
-      final salary = path == 'College' ? _collegeCareers[career]! : _nonCollegeCareers[career]!;
+      final salary = path == 'College'
+          ? _collegeCareers[career]!
+          : _nonCollegeCareers[career]!;
       final initialBalance = path == 'College' ? 2000 : 2500;
 
       return Player(
@@ -103,13 +122,37 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
     });
 
     final gameState = GameState(players: players);
-    await StorageService.saveGame(gameState);
+
+    setState(() {
+      _isStartingGame = true;
+    });
+
+    bool saved = false;
+    try {
+      saved = await StorageService.saveGame(gameState);
+    } catch (error) {
+      saved = false;
+    }
 
     if (!mounted) return;
 
+    setState(() {
+      _isStartingGame = false;
+    });
+
+    if (!saved) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Game created, but it could not be saved locally.'),
+        ),
+      );
+    }
+
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => PlayerProfileScreen(gameState: gameState)),
+      MaterialPageRoute(
+        builder: (_) => PlayerProfileScreen(gameState: gameState),
+      ),
     );
   }
 
@@ -124,10 +167,20 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Number of Players (2-6):', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Number of Players (2-6):',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 DropdownButton<int>(
                   value: _numberOfPlayers,
-                  items: [2, 3, 4, 5, 6].map((value) => DropdownMenuItem(value: value, child: Text('$value Players'))).toList(),
+                  items: [2, 3, 4, 5, 6]
+                      .map(
+                        (value) => DropdownMenuItem(
+                          value: value,
+                          child: Text('$value Players'),
+                        ),
+                      )
+                      .toList(),
                   onChanged: (value) {
                     if (value == null) return;
                     setState(() {
@@ -144,7 +197,10 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
                 itemCount: _numberOfPlayers,
                 itemBuilder: (context, index) {
                   final currentPath = _selectedPaths[index];
-                  final careers = currentPath == 'College' ? _collegeCareers.keys.toList() : _nonCollegeCareers.keys.toList();
+                  final careers = currentPath == 'College'
+                      ? _collegeCareers.keys.toList()
+                      : _nonCollegeCareers.keys.toList();
+
                   if (!careers.contains(_selectedCareers[index])) {
                     _selectedCareers[index] = careers.first;
                   }
@@ -156,14 +212,33 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Player ${index + 1} Configuration', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          TextField(controller: _nameControllers[index], decoration: const InputDecoration(labelText: 'Player Name')),
+                          Text(
+                            'Player ${index + 1} Configuration',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          TextField(
+                            controller: _nameControllers[index],
+                            decoration: const InputDecoration(
+                              labelText: 'Player Name',
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           DropdownButtonFormField<String>(
                             value: _selectedColors[index],
-                            decoration: const InputDecoration(labelText: 'Token Color'),
-                            items: _availableColors.map((color) => DropdownMenuItem(value: color, child: Text(color))).toList(),
-                            onChanged: (value) => setState(() => _selectedColors[index] = value!),
+                            decoration: const InputDecoration(
+                              labelText: 'Token Color',
+                            ),
+                            items: _availableColors
+                                .map(
+                                  (color) => DropdownMenuItem(
+                                    value: color,
+                                    child: Text(color),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (value) => setState(
+                              () => _selectedColors[index] = value!,
+                            ),
                           ),
                           const SizedBox(height: 12),
                           Row(
@@ -172,13 +247,25 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
                                 child: DropdownButtonFormField<String>(
                                   isExpanded: true,
                                   value: currentPath,
-                                  decoration: const InputDecoration(labelText: 'Path'),
-                                  items: ['College', 'Non-College'].map((path) => DropdownMenuItem(value: path, child: Text(path))).toList(),
+                                  decoration: const InputDecoration(
+                                    labelText: 'Path',
+                                  ),
+                                  items: ['College', 'Non-College']
+                                      .map(
+                                        (path) => DropdownMenuItem(
+                                          value: path,
+                                          child: Text(path),
+                                        ),
+                                      )
+                                      .toList(),
                                   onChanged: (value) {
                                     if (value == null) return;
                                     setState(() {
                                       _selectedPaths[index] = value;
-                                      _selectedCareers[index] = value == 'College' ? _collegeCareers.keys.first : _nonCollegeCareers.keys.first;
+                                      _selectedCareers[index] =
+                                          value == 'College'
+                                              ? _collegeCareers.keys.first
+                                              : _nonCollegeCareers.keys.first;
                                     });
                                   },
                                 ),
@@ -189,13 +276,24 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
                                 child: DropdownButtonFormField<String>(
                                   isExpanded: true,
                                   value: _selectedCareers[index],
-                                  decoration: const InputDecoration(labelText: 'Career'),
+                                  decoration: const InputDecoration(
+                                    labelText: 'Career',
+                                  ),
                                   items: careers.map((career) {
-                                    final salary = currentPath == 'College' ? _collegeCareers[career]! : _nonCollegeCareers[career]!;
-                                    return DropdownMenuItem(value: career, child: Text('$career (${salary}M)'));
+                                    final salary = currentPath == 'College'
+                                        ? _collegeCareers[career]!
+                                        : _nonCollegeCareers[career]!;
+                                    return DropdownMenuItem(
+                                      value: career,
+                                      child: Text('$career (${salary}M)'),
+                                    );
                                   }).toList(),
                                   onChanged: (value) {
-                                    if (value != null) setState(() => _selectedCareers[index] = value);
+                                    if (value != null) {
+                                      setState(() {
+                                        _selectedCareers[index] = value;
+                                      });
+                                    }
                                   },
                                 ),
                               ),
@@ -209,9 +307,14 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
               ),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
-              onPressed: _startGame,
-              child: const Text('Start Game (2500 Mints Base)', style: TextStyle(fontSize: 18)),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(50),
+              ),
+              onPressed: _isStartingGame ? null : _startGame,
+              child: Text(
+                _isStartingGame ? 'STARTING GAME...' : 'Start Game (2500 Mints Base)',
+                style: const TextStyle(fontSize: 18),
+              ),
             ),
           ],
         ),
