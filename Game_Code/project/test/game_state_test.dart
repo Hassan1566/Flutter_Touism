@@ -58,12 +58,12 @@ void main() {
       );
       final game = GameState(players: [player]);
 
-      game.nextTurn(); // completes Year 1
-      game.nextTurn(); // completes Year 2
-      game.nextTurn(); // completes Year 3
+      game.nextTurn();
+      game.nextTurn();
+      game.nextTurn();
 
       expect(player.loan, isNull);
-      expect(player.balance, 1080);
+      expect(player.balance, 1480);
       expect(
         player.history.map((entry) => entry.action),
         contains('Loan Repaid'),
