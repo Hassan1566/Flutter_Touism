@@ -1,5 +1,6 @@
 import '../models/game_stat.dart';
 import '../models/player_model.dart';
+import 'banking_service.dart';
 
 class GameService {
   /// Processes the effects of passing GO.
@@ -42,71 +43,14 @@ class GameService {
         player.startupFund;
   }
 
-  /// Charges yearly loan interest.
-  ///
-  /// MINTED:
-  /// Loan interest = 10% annually.
-  /// Principal is returned at the end of Year 3.
-  static void processLoanYear(Player player, int year) {
-    final loan = player.loan;
-
-    if (loan == null) return;
-
-    if (year <= loan.maturityYear) {
-      final interest = loan.annualInterest;
-
-      player.removeMoney(interest);
-
-      player.addHistory('Loan interest - Year $year', -interest);
-    }
-
-    // Principal is paid at maturity.
-    if (year == loan.maturityYear) {
-      final principal = loan.principal;
-
-      player.removeMoney(principal);
-
-      player.addHistory('Loan principal repayment', -principal);
-
-      player.loan = null;
-    }
-  }
-
-  /// Processes yearly investment growth.
-  ///
-  /// Investment uses simple interest:
-  /// 5% per year.
-  static void processInvestmentYear(Player player, int year) {
-    final investment = player.investment;
-
-    if (investment == null) return;
-
-    if (year < investment.maturityYear) {
-      player.addHistory(
-        'Investment interest - Year $year',
-        investment.annualInterest,
-      );
-    }
-
-    // Return principal + total interest at maturity.
-    if (year == investment.maturityYear) {
-      final maturityAmount = investment.maturityAmount;
-
-      player.addMoney(maturityAmount);
-
-      player.addHistory('Investment matured', maturityAmount);
-
-      player.investment = null;
-    }
-  }
-
   /// Processes the beginning of a new year.
   static void processNewYear(GameState gameState) {
     final year = gameState.currentYear;
 
     for (final player in gameState.players) {
-      processLoanYear(player, year);
-      processInvestmentYear(player, year);
+      BankingService.processLoanYear(player, year);
+
+      BankingService.processInvestmentYear(player, year);
     }
   }
 

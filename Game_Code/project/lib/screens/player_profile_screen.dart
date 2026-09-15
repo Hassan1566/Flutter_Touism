@@ -6,7 +6,7 @@ import '../models/player_model.dart';
 import '../models/game_stat.dart';
 import '../services/quiz_service.dart';
 import '../services/banking_service.dart';
-import '../services/news_startup.dart';
+import '../services/news_service.dart';
 import '../services/startup_service.dart';
 
 import '../widgets/game_over_service.dart';
@@ -313,18 +313,24 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                   ),
                   ElevatedButton.icon(
                     onPressed: () {
-                      showBankingDialog(context, activePlayer, () {
-                        setState(() {});
-                      });
+                      BankingService.showBankingDialog(
+                        context,
+                        activePlayer,
+                        () {
+                          setState(() {});
+                        },
+                      );
                     },
                     icon: const Icon(Icons.account_balance),
                     label: const Text("Banking"),
                   ),
                   ElevatedButton.icon(
                     onPressed: () {
-                      showNewsStartupDialog(context, activePlayer, () {
-                        setState(() {});
-                      });
+                      NewsService.showNewsDialog(
+                        context,
+                        widget.gameState,
+                        () => setState(() {}),
+                      );
                     },
                     icon: const Icon(Icons.newspaper),
                     label: const Text("News"),

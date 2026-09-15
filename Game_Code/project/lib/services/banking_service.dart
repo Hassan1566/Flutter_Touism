@@ -1,152 +1,242 @@
 import 'package:flutter/material.dart';
-import 'package:project/models/player_model.dart';
 
-void showBankingDialog(
-  BuildContext context,
-  Player activePlayer,
-  VoidCallback onUpdate,
-) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      TextEditingController amountController = TextEditingController();
-      return AlertDialog(
-        title: const Text('🏦 Banking & Loans'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: amountController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Enter Amount (Mints)',
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    int amount = int.tryParse(amountController.text) ?? 0;
-                    if (amount > 0) {
-                      _processLoan(activePlayer, amount, onUpdate);
-                      Navigator.pop(context);
-                    } else if (amount == 0) {
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: const Text('Error'),
-                            content: const Text('Please enter a valid amount.'),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: const Text('OK'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    }
-                  },
-                  child: const Text('Take Loan'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    int amount = int.tryParse(amountController.text) ?? 0;
-                    if (amount > 0) {
-                      _processInvestment(
-                        context,
-                        activePlayer,
-                        amount,
-                        onUpdate,
-                      );
-                      Navigator.pop(context);
-                    } else if (amount == 0) {
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: const Text('Error'),
-                            content: const Text('Please enter a valid amount.'),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: const Text('OK'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    }
-                  },
-                  child: const Text('Invest'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    },
-  );
-}
+import '../models/player_model.dart';
 
-void _processLoan(Player player, int amount, VoidCallback onUpdate) {
-  player.balance += amount;
-  int currentLoan = player.loan?.principal ?? 0;
-  player.loan = LoanData(
-    principal: currentLoan + amount,
-    startYear: player.loan?.startYear ?? 1,
-  );
-  player.addHistory('Loan Taken', amount);
-  onUpdate();
-}
-
-void _processInvestment(
-  BuildContext context,
-  Player player,
-  int principal,
-  VoidCallback onUpdate,
-) {
-  // 1. Check if the player actually has enough cash to invest
-  if (player.balance < principal) {
+class BankingService {
+  /// Shows the main banking dialog.
+  static void showBankingDialog(
+    BuildContext context,
+    Player player,
+    VoidCallback onUpdate,
+  ) {
     showDialog(
       context: context,
       builder: (context) {
+        final amountController = TextEditingController();
+
         return AlertDialog(
-          title: const Text('Error'),
-          content: const Text('You don\'t have enough money to invest.'),
+          title: const Text('🏦 Banking'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Balance: ${player.balance} Mints'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: amountController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Amount (Mints)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
+                showLoanInfo(context, player, amountController, onUpdate);
               },
-              child: const Text('OK'),
+              child: const Text('Take Loan'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final amount = int.tryParse(amountController.text);
+
+                if (amount == null || amount <= 0) {
+                  _showMessage(context, 'Please enter a valid amount.');
+                  return;
+                }
+
+                final success = makeInvestment(player, amount);
+
+                if (success) {
+                  Navigator.pop(context);
+
+                  _showMessage(context, 'Investment of $amount Mints created.');
+
+                  onUpdate();
+                } else {
+                  _showMessage(context, 'You cannot make this investment.');
+                }
+              },
+              child: const Text('Invest'),
             ),
           ],
         );
       },
     );
-    return;
   }
 
-  // 2. Deduct the invested cash from their active balance
-  player.balance -= principal;
+  /// Shows loan confirmation/details.
+  static void showLoanInfo(
+    BuildContext context,
+    Player player,
+    TextEditingController controller,
+    VoidCallback onUpdate,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('🏦 Take Loan'),
+          content: const Text(
+            'Loan interest is 10% per year.\n\n'
+            'The loan principal is repaid at the '
+            'end of Year 3.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final amount = int.tryParse(controller.text);
 
-  // 3. Safely add the money to their active investments tracking
-  int currentInvest = player.investment?.principal ?? 0;
-  player.investment = InvestmentData(
-    principal: currentInvest + principal,
-    startYear: player.investment?.startYear ?? 1,
-  );
+                if (amount == null || amount <= 0) {
+                  _showMessage(context, 'Please enter a valid loan amount.');
+                  return;
+                }
 
-  // 4. Log the transaction accurately
-  player.addHistory('Investment Made', -principal);
+                final success = takeLoan(player, amount);
 
-  onUpdate();
+                Navigator.pop(context);
+
+                _showMessage(
+                  context,
+                  success
+                      ? 'Loan of $amount Mints received.'
+                      : 'You already have an active loan.',
+                );
+
+                if (success) {
+                  onUpdate();
+                }
+              },
+              child: const Text('Confirm Loan'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Creates a new loan.
+  ///
+  /// Only one active loan is allowed.
+  static bool takeLoan(Player player, int amount) {
+    if (amount <= 0) {
+      return false;
+    }
+
+    if (player.loan != null) {
+      return false;
+    }
+
+    player.loan = LoanData(principal: amount, startYear: 1);
+
+    player.addMoney(amount);
+
+    player.addHistory('Loan Taken', amount);
+
+    return true;
+  }
+
+  /// Creates a new investment.
+  ///
+  /// Investment uses 5% simple interest per year
+  /// and matures at the end of Year 3.
+  static bool makeInvestment(Player player, int amount) {
+    if (amount <= 0) {
+      return false;
+    }
+
+    if (player.investment != null) {
+      return false;
+    }
+
+    if (player.balance < amount) {
+      return false;
+    }
+
+    player.removeMoney(amount);
+
+    player.investment = InvestmentData(principal: amount, startYear: 1);
+
+    player.addHistory('Investment Made', -amount);
+
+    return true;
+  }
+
+  /// Processes one year of loan activity.
+  ///
+  /// Year 1: 10% interest
+  /// Year 2: 10% interest
+  /// Year 3: 10% interest + principal
+  static void processLoanYear(Player player, int year) {
+    final loan = player.loan;
+
+    if (loan == null) {
+      return;
+    }
+
+    final interest = loan.annualInterest;
+
+    if (year < loan.maturityYear) {
+      player.removeMoney(interest);
+
+      player.addHistory('Loan Interest - Year $year', -interest);
+
+      return;
+    }
+
+    if (year == loan.maturityYear) {
+      final totalPayment = loan.principal + interest;
+
+      player.removeMoney(totalPayment);
+
+      player.addHistory('Loan Repaid', -totalPayment);
+
+      player.loan = null;
+    }
+  }
+
+  /// Processes one year of investment activity.
+  ///
+  /// Interest is 5% of the original principal.
+  /// This is simple interest, not compound interest.
+  static void processInvestmentYear(Player player, int year) {
+    final investment = player.investment;
+
+    if (investment == null) {
+      return;
+    }
+
+    if (year < investment.maturityYear) {
+      player.addHistory(
+        'Investment Interest - Year $year',
+        investment.annualInterest,
+      );
+
+      return;
+    }
+
+    if (year == investment.maturityYear) {
+      final maturityAmount = investment.maturityAmount;
+
+      player.addMoney(maturityAmount);
+
+      player.addHistory('Investment Matured', maturityAmount);
+
+      player.investment = null;
+    }
+  }
+
+  static void _showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
 }
