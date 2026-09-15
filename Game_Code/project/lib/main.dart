@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'models/game_stat.dart';
 import 'screens/how_to_play_screen.dart';
 import 'screens/player_profile_screen.dart';
 import 'screens/player_setup_screen.dart';
@@ -25,9 +24,7 @@ class MintedApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         scaffoldBackgroundColor: const Color(0xFFF5F5F5),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1B5E20),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1B5E20)),
         fontFamily: 'Roboto',
       ),
       home: const SplashScreen(),
@@ -71,11 +68,7 @@ class _SplashScreenState extends State<SplashScreen> {
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.account_balance_wallet,
-              size: 86,
-              color: Colors.white,
-            ),
+            Icon(Icons.account_balance_wallet, size: 86, color: Colors.white),
             SizedBox(height: 24),
             Text(
               'MINTED',
@@ -90,10 +83,7 @@ class _SplashScreenState extends State<SplashScreen> {
             Text(
               'Build Wealth. Make Smart Decisions.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 16,
-              ),
+              style: TextStyle(color: Colors.white70, fontSize: 16),
             ),
             SizedBox(height: 42),
             SizedBox(
@@ -156,9 +146,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
 
     if (savedGame == null || savedGame.players.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No saved game found.')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('No saved game found.')));
       return;
     }
 
@@ -223,10 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                   child: const Text(
                     'START GAME',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -260,10 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                   child: const Text(
                     'HOW TO PLAY',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -274,9 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: OutlinedButton.icon(
                   onPressed: _toggleMusic,
                   icon: Icon(
-                    _musicEnabled
-                        ? Icons.music_note
-                        : Icons.music_off,
+                    _musicEnabled ? Icons.music_note : Icons.music_off,
                   ),
                   label: Text(
                     _musicEnabled ? 'MUSIC ON' : 'MUSIC OFF',
@@ -296,10 +277,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: const Icon(Icons.settings),
                   label: const Text(
                     'SETTINGS',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
