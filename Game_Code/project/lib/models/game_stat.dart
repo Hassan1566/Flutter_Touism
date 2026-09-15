@@ -134,8 +134,8 @@ class GameState {
     return player.investment?.principal ?? 0;
   }
 
-  /// Net worth includes cash, property, active investment principal and
-  /// startup funds, less outstanding loan principal.
+  /// Net worth = cash + property value + active investment principal
+  /// + startup funds - outstanding loan principal.
   int calculateNetWorth(Player player) {
     return player.balance +
         propertyValueForPlayer(player) +
@@ -173,11 +173,16 @@ class GameState {
         .map((player) => Player.fromJson(Map<String, dynamic>.from(player)))
         .toList();
 
-    final rawIndex = json['activePlayerIndex'] ?? 0;
-    final safeIndex = players.isEmpty
-        ? 0
-        : (rawIndex is int ? rawIndex : int.tryParse('$rawIndex') ?? 0)
-            .clamp(0, players.length - 1);
+    int safeIndex = json['activePlayerIndex'] is int
+        ? json['activePlayerIndex'] as int
+        : int.tryParse('${json['activePlayerIndex']}') ?? 0;
+
+    if (players.isEmpty) {
+      safeIndex = 0;
+    } else {
+      if (safeIndex < 0) safeIndex = 0;
+      if (safeIndex >= players.length) safeIndex = players.length - 1;
+    }
 
     return GameState(
       players: players,
@@ -188,8 +193,12 @@ class GameState {
           )
           .toList(),
       activePlayerIndex: safeIndex,
-      currentYear: json['currentYear'] ?? 1,
-      maxYears: json['maxYears'] ?? 3,
+      currentYear: json['currentYear'] is int
+          ? json['currentYear'] as int
+          : int.tryParse('${json['currentYear']}') ?? 1,
+      maxYears: json['maxYears'] is int
+          ? json['maxYears'] as int
+          : int.tryParse('${json['maxYears']}') ?? 3,
       isGameStarted: json['isGameStarted'] ?? true,
       isGameFinished: json['isGameFinished'] ?? false,
     );
