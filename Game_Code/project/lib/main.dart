@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:project/screens/player_setup_screen.dart';
 import 'package:project/screens/how_to_play_screen.dart';
+import 'package:project/models/game_stat.dart';
+import 'package:project/screens/player_profile_screen.dart';
+import 'package:project/services/storage_service.dart';
 
 void main() {
   runApp(const MintedApp());
@@ -79,6 +82,39 @@ class HomeScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 16),
+
+              // Continue Game
+              SizedBox(
+                width: double.infinity,
+                height: 58,
+                child: OutlinedButton(
+                  onPressed: () async {
+                    final GameState? savedGame =
+                        await StorageService.loadGame();
+
+                    if (!context.mounted) return;
+
+                    if (savedGame == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('No saved game found.')),
+                      );
+                      return;
+                    }
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            PlayerProfileScreen(gameState: savedGame),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'CONTINUE GAME',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
 
               // How to Play
               SizedBox(
