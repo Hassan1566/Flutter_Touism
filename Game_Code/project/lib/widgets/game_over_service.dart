@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../models/game_stat.dart';
-import '../models/player_model.dart';
 
 void showGameOverDialog(
   BuildContext context,

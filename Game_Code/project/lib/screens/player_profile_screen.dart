@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../models/game_stat.dart';
-import '../models/player_model.dart';
 import '../services/banking_service.dart';
 import '../services/news_service.dart';
 import '../services/quiz_service.dart';
@@ -78,9 +77,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
     if (completedRound) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Year ${widget.gameState.currentYear} started.',
-          ),
+          content: Text('Year ${widget.gameState.currentYear} started.'),
         ),
       );
     }
@@ -102,7 +99,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white54,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -161,10 +158,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                   children: [
                     Text(
                       'Active Profile',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 14,
-                      ),
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -238,9 +232,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                           log.amount >= 0
                               ? Icons.arrow_upward
                               : Icons.arrow_downward,
-                          color: log.amount >= 0
-                              ? Colors.green
-                              : Colors.red,
+                          color: log.amount >= 0 ? Colors.green : Colors.red,
                         ),
                         title: Text(log.action),
                         subtitle: Text(
@@ -353,21 +345,14 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
     );
   }
 
-  Widget _valueRow(
-    String label,
-    String value, {
-    Color? valueColor,
-  }) {
+  Widget _valueRow(String label, String value, {Color? valueColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Flexible(
-            child: Text(
-              '$label:',
-              style: const TextStyle(fontSize: 16),
-            ),
+            child: Text('$label:', style: const TextStyle(fontSize: 16)),
           ),
           const SizedBox(width: 12),
           Flexible(
