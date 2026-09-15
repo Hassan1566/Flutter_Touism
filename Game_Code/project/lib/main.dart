@@ -116,6 +116,8 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
 
+              const SizedBox(height: 16),
+
               // How to Play
               SizedBox(
                 width: double.infinity,
