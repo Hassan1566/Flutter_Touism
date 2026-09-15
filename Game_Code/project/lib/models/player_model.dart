@@ -44,19 +44,17 @@ class Player {
   }) : propertyIds = propertyIds ?? [],
        history = history ?? [];
 
-  /// Total value of this player's assets.
+  /// Total value of this player's liquid assets plus supplied property/investment values.
   int calculateTotalAssets({int propertyValue = 0, int investmentValue = 0}) {
-    return balance + propertyValue + investmentValue;
+    return balance + propertyValue + investmentValue + startupFund;
   }
 
-  /// Add money to the player's balance.
   void addMoney(int amount) {
-    balance += amount;
+    if (amount > 0) balance += amount;
   }
 
-  /// Remove money from the player's balance.
   bool removeMoney(int amount) {
-    if (amount > balance) {
+    if (amount < 0 || amount > balance) {
       return false;
     }
 
@@ -64,7 +62,6 @@ class Player {
     return true;
   }
 
-  /// Add a history record.
   void addHistory(String action, int amount) {
     history.add(
       HistoryEntry(action: action, amount: amount, date: DateTime.now()),
@@ -130,17 +127,15 @@ class LoanData {
 
   LoanData({required this.principal, required this.startYear});
 
-  int get annualInterest {
-    return (principal * 10 / 100).round();
-  }
+  int get annualInterest => (principal * 10 / 100).round();
 
-  int get maturityYear {
-    return startYear + 3;
-  }
+  // A loan taken in Year 1 is settled at the end of Year 3.
+  int get maturityYear => startYear + 2;
 
-  Map<String, dynamic> toJson() {
-    return {'principal': principal, 'startYear': startYear};
-  }
+  Map<String, dynamic> toJson() => {
+        'principal': principal,
+        'startYear': startYear,
+      };
 
   factory LoanData.fromJson(Map<String, dynamic> json) {
     return LoanData(
@@ -162,21 +157,17 @@ class InvestmentData {
 
   InvestmentData({required this.principal, required this.startYear});
 
-  int get annualInterest {
-    return (principal * 5 / 100).round();
-  }
+  int get annualInterest => (principal * 5 / 100).round();
 
-  int get maturityYear {
-    return startYear + 3;
-  }
+  // An investment made in Year 1 matures at the end of Year 3.
+  int get maturityYear => startYear + 2;
 
-  int get maturityAmount {
-    return principal + (annualInterest * 3);
-  }
+  int get maturityAmount => principal + (annualInterest * 3);
 
-  Map<String, dynamic> toJson() {
-    return {'principal': principal, 'startYear': startYear};
-  }
+  Map<String, dynamic> toJson() => {
+        'principal': principal,
+        'startYear': startYear,
+      };
 
   factory InvestmentData.fromJson(Map<String, dynamic> json) {
     return InvestmentData(
@@ -186,7 +177,6 @@ class InvestmentData {
   }
 }
 
-/// A single player history record.
 class HistoryEntry {
   final String action;
   final int amount;
@@ -198,9 +188,11 @@ class HistoryEntry {
     required this.date,
   });
 
-  Map<String, dynamic> toJson() {
-    return {'action': action, 'amount': amount, 'date': date.toIso8601String()};
-  }
+  Map<String, dynamic> toJson() => {
+        'action': action,
+        'amount': amount,
+        'date': date.toIso8601String(),
+      };
 
   factory HistoryEntry.fromJson(Map<String, dynamic> json) {
     return HistoryEntry(
