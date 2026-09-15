@@ -59,22 +59,23 @@ class StartupService {
     });
   }
 
-  /// Shows the dice-result dialog and returns only after it is closed.
+  /// Shows the dice-result dialog and applies the result after it closes.
   static Future<void> _showRiskDiceInput({
     required BuildContext context,
     required Player player,
     required VoidCallback onUpdated,
   }) async {
-    final result = await showDialog<bool>(
+    final diceResult = await showDialog<int>(
       context: context,
       builder: (dialogContext) => const _RiskDiceDialog(),
     );
 
-    if (!context.mounted || result == null) return;
+    if (!context.mounted || diceResult == null) return;
 
-    if (result < 1 || result > 6) return;
-
-    final success = GameService.handleStartupRiskOption(player, result);
+    final success = GameService.handleStartupRiskOption(
+      player,
+      diceResult,
+    );
 
     if (!context.mounted) return;
 
@@ -82,7 +83,7 @@ class StartupService {
       SnackBar(
         content: Text(
           success
-              ? 'Startup risk cost: ${result * 100} Mints.'
+              ? 'Startup risk cost: ${diceResult * 100} Mints.'
               : 'Not enough balance.',
         ),
       ),
@@ -109,9 +110,9 @@ class _RiskDiceDialogState extends State<_RiskDiceDialog> {
   }
 
   void _apply() {
-    final result = int.tryParse(_controller.text.trim());
+    final diceResult = int.tryParse(_controller.text.trim());
 
-    if (result == null || result < 1 || result > 6) {
+    if (diceResult == null || diceResult < 1 || diceResult > 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Enter a dice result from 1 to 6.'),
@@ -120,7 +121,7 @@ class _RiskDiceDialogState extends State<_RiskDiceDialog> {
       return;
     }
 
-    Navigator.pop(context, result);
+    Navigator.pop(context, diceResult);
   }
 
   @override
