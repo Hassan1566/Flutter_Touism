@@ -10,12 +10,8 @@ class StartupService {
     required Player player,
     required VoidCallback onUpdated,
   }) {
-    // Keep the parent screen context. Do not use the dialog's context to
-    // open another dialog after the first dialog has been popped.
-    final parentContext = context;
-
     showDialog<bool>(
-      context: parentContext,
+      context: context,
       builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Startup Event'),
@@ -28,7 +24,6 @@ class StartupService {
             TextButton(
               onPressed: () {
                 final success = GameService.handleStartupFixedOption(player);
-
                 Navigator.pop(dialogContext, success);
               },
               child: const Text('Pay 200'),
@@ -36,9 +31,8 @@ class StartupService {
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(dialogContext);
-
                 _showRiskDiceInput(
-                  context: parentContext,
+                  context: context,
                   player: player,
                   onUpdated: onUpdated,
                 );
@@ -49,9 +43,9 @@ class StartupService {
         );
       },
     ).then((result) {
-      if (!parentContext.mounted || result == null) return;
+      if (result is! bool) return;
 
-      ScaffoldMessenger.of(parentContext).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             result
@@ -65,78 +59,95 @@ class StartupService {
     });
   }
 
-  /// Gets the physical dice result from the user.
+  /// Shows the dice-result dialog and returns only after it is closed.
   static Future<void> _showRiskDiceInput({
     required BuildContext context,
     required Player player,
     required VoidCallback onUpdated,
   }) async {
-    final parentContext = context;
-    final controller = TextEditingController();
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => const _RiskDiceDialog(),
+    );
 
-    try {
-      final result = await showDialog<bool>(
-        context: parentContext,
-        builder: (dialogContext) {
-          return AlertDialog(
-            title: const Text('Startup Risk'),
-            content: TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Physical dice result',
-                hintText: 'Enter 1 - 6',
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(dialogContext);
-                },
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  final diceResult = int.tryParse(controller.text.trim());
+    if (!context.mounted || result == null) return;
 
-                  if (diceResult == null || diceResult < 1 || diceResult > 6) {
-                    ScaffoldMessenger.of(dialogContext).showSnackBar(
-                      const SnackBar(
-                        content: Text('Enter a dice result from 1 to 6.'),
-                      ),
-                    );
-                    return;
-                  }
+    if (result < 1 || result > 6) return;
 
-                  final success = GameService.handleStartupRiskOption(
-                    player,
-                    diceResult,
-                  );
+    final success = GameService.handleStartupRiskOption(player, result);
 
-                  Navigator.pop(dialogContext, success);
-                },
-                child: const Text('Apply'),
-              ),
-            ],
-          );
-        },
-      );
+    if (!context.mounted) return;
 
-      if (!parentContext.mounted || result == null) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? 'Startup risk cost: ${result * 100} Mints.'
+              : 'Not enough balance.',
+        ),
+      ),
+    );
 
-      ScaffoldMessenger.of(parentContext).showSnackBar(
-        SnackBar(
-          content: Text(
-            result
-                ? 'Startup risk cost applied.'
-                : 'Not enough balance.',
-          ),
+    onUpdated();
+  }
+}
+
+class _RiskDiceDialog extends StatefulWidget {
+  const _RiskDiceDialog();
+
+  @override
+  State<_RiskDiceDialog> createState() => _RiskDiceDialogState();
+}
+
+class _RiskDiceDialogState extends State<_RiskDiceDialog> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _apply() {
+    final result = int.tryParse(_controller.text.trim());
+
+    if (result == null || result < 1 || result > 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Enter a dice result from 1 to 6.'),
         ),
       );
-
-      onUpdated();
-    } finally {
-      controller.dispose();
+      return;
     }
+
+    Navigator.pop(context, result);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Startup Risk'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        keyboardType: TextInputType.number,
+        textInputAction: TextInputAction.done,
+        onSubmitted: (_) => _apply(),
+        decoration: const InputDecoration(
+          labelText: 'Physical dice result',
+          hintText: 'Enter 1 - 6',
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _apply,
+          child: const Text('Apply'),
+        ),
+      ],
+    );
   }
 }
