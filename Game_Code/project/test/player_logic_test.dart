@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:project/models/player_model.dart';
+import 'package:minted/models/player_model.dart';
 
 void main() {
   group('MINTED Core Economic Engine Tests', () {
