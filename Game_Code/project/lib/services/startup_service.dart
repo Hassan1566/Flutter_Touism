@@ -45,6 +45,7 @@ class StartupService {
     ).then((result) {
       if (result is! bool) return;
 
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -72,10 +73,7 @@ class StartupService {
 
     if (!context.mounted || diceResult == null) return;
 
-    final success = GameService.handleStartupRiskOption(
-      player,
-      diceResult,
-    );
+    final success = GameService.handleStartupRiskOption(player, diceResult);
 
     if (!context.mounted) return;
 
@@ -114,9 +112,7 @@ class _RiskDiceDialogState extends State<_RiskDiceDialog> {
 
     if (diceResult == null || diceResult < 1 || diceResult > 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Enter a dice result from 1 to 6.'),
-        ),
+        const SnackBar(content: Text('Enter a dice result from 1 to 6.')),
       );
       return;
     }
@@ -144,10 +140,7 @@ class _RiskDiceDialogState extends State<_RiskDiceDialog> {
           onPressed: () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
-        ElevatedButton(
-          onPressed: _apply,
-          child: const Text('Apply'),
-        ),
+        ElevatedButton(onPressed: _apply, child: const Text('Apply')),
       ],
     );
   }
