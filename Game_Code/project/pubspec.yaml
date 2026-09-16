@@ -1,7 +1,7 @@
-name: project
-description: "A new Flutter project."
+name: minted
+description: "MINTED — Hybrid Board Game Companion"
 publish_to: 'none'
-version: 0.1.0+1
+version: 1.0.0+1
 
 environment:
   sdk: ^3.13.1
@@ -15,5 +15,6 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+
 flutter:
   uses-material-design: true
