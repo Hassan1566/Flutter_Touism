@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:project/models/player_model.dart';
+import 'package:minted/models/player_model.dart';
 
 class QuizQuestion {
   final String question;
