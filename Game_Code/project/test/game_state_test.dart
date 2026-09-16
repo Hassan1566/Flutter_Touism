@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:project/models/game_stat.dart';
-import 'package:project/models/player_model.dart';
-import 'package:project/models/property_model.dart';
+import 'package:minted/models/game_stat.dart';
+import 'package:minted/models/player_model.dart';
+import 'package:minted/models/property_model.dart';
 
 Player makePlayer({
   required int id,
