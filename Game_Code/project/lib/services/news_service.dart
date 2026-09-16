@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:project/models/game_stat.dart';
+import 'package:minted/models/game_stat.dart';
 
 class NewsService {
   static final Random _random = Random();
